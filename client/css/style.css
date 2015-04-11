@@ -1,0 +1,46 @@
+button.button-block{
+    margin: 10px;
+    margin-left: auto;
+    display: block;
+}
+body{
+   /* width: 970px;*/
+}
+h1.header{
+    font-size: 48px;
+    color: grey;
+    text-align: center;
+}
+h2.header{
+    text-align: center;
+}
+body.bg-blue{
+    background-color: skyblue;
+}
+div.server-res h2{
+    font-weight: normal;
+    font-size: 18px;
+    text-align: left;
+}
+div.server-res  h3{
+    font-weight: normal;
+    font-size: 18px;
+    padding-left: 36px;
+    padding-bottom: 12px;
+    text-align: left;
+    border-bottom: 1px solid black;
+}
+div.server-res  p{
+    text-align: center;
+}
+.green{
+    font-weight: bold;
+    background-color: green;
+}
+.red{
+    font-weight: bold;
+    background-color: red;
+}
+textarea{
+    resize: none;
+}
