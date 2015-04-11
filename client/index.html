@@ -36,6 +36,7 @@
                 $scope.pick_data = LeagueFactory.getPicks(function (data) {
                     //d3js starts here
                     //runD3(data);
+                    $scope.total_picks = data.total_picks;
                     var pick_data = data.pick_data;
                     var pick_array = [];
                     for (var pick in pick_data)
@@ -67,7 +68,7 @@
                     <tr ng-repeat='pick in pick_data | filter:filter_name | orderBy:"-picks"'>
                         <td ng-bind='pick.name'></td>
                         <td ng-bind='pick.picks'></td>
-                        <td ng-bind='pick.picks'></td>
+                        <td ng-bind='pick.picks / total_picks * 100'></td>
                     </tr>
                     <!-- <tr ng-repeat='pick in pick_data | filter:filter_name track by $index | orderBy:"name"'>
                         <td ng-bind='pick.name'></td>

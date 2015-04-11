@@ -1,22 +1,24 @@
-// this is our friends.js file located at /server/controllers/friends.js
+// this is our pick_data_c.js controller file located at /server/controllers/friends.js
 // note the immediate function and the object that is returned
 
-// First add the following two lines at the top of the friends controller so that we can access our model through var Friend
+// First add the following lines at the top of the friends controller so that we can access our models
 // need to require mongoose to be able to run mongoose.model()
 var mongoose = require('mongoose');
 var MatchData = mongoose.model('MatchData');
 var MatchID = mongoose.model('MatchID');
 var Champion = mongoose.model('Champion');
 
+//load up the http request module
 var request = require('request');
 
+//init the api keys we'll be using - doesn't support more than 2 keys right now
 var keyIndex = 0;
 var keys = ['5ec9cf1a-71be-44ef-8a54-e2ce3bbc1e45', '664b8522-f6e1-466e-9ca3-10123fe43058'];
 
-var championData;
-var matchData;
-var pickData;
 
+//mark a single match as scanned in the db
+//scanned matches have had their match data stored
+//kinda buggy right now ... matches that get stored don't always successfully write themselves as scanned
 function markMatchAsScanned(matchId)
 {
     MatchID.update({uid:matchId},{$set:{scanned:1}}).exec(function (err, results) {
@@ -27,6 +29,8 @@ function markMatchAsScanned(matchId)
         }
     })
 };
+//mark a single match as loaded in the db
+//loaded matches are ones that we've pulled from the db but haven't yet stored the match data for
 function markMatchAsLoaded(matchId)
 {
     MatchID.update({uid:matchId},{$set:{loaded:1}}).exec(function (err, results) {
@@ -38,26 +42,34 @@ function markMatchAsLoaded(matchId)
     })
 };
 
+
+//init some output objects that we'll populate and throw back to the viewer
+var championData;
+var matchData;
+
+//immediate function
+//on server startup, grab all our champion information from the db
 (function ()
 {
     Champion.find({}).exec(function (err, results) {
         if (err) {
             console.log(err);
         } else {
-            console.log("pulled champ info from db");
+            console.log("pulled champ info from db!");
             championData = results;
         }
     })
 }());
 
-// championData = getChampData();
-
+//init our pick_data object which holds all info on how many times a champ was picked
 var pick_data = {};
 var total_picks = 0;
 
+//immediate function to get all the db match data on server startup
 (function ()
 {
-    MatchData.find({}).limit(100).exec(function (err, results) {
+    //change limit to modify documents captured
+    MatchData.find({}).limit(10).exec(function (err, results) {
         if (err) {
             console.log(err);
         } else {
@@ -73,6 +85,7 @@ var total_picks = 0;
                 }
             }
 
+            //traverse results to populate necessary view data
             for (var obj in results)
             {
                 var match_data = results[obj]['match_data'];
@@ -108,39 +121,37 @@ var total_picks = 0;
     })
 }());
 
+//functions to export to our server
 module.exports = (function () {
     return {
-        // show: function(req, res) {
-        //   res.json(friends);
-        // },
-        // Edit the show method as follows
-        show: function (req, res) {
-            // Friend.find({}, function (err, results) {
-            //     if (err) {
-            //         console.log(err);
-            //     } else {
-            //         res.json(results);
-            //     }
-            // })
-        },
-        add: function (req, res) {
-            //console.log(url);
+        populateMatchIDs: function (req, res, time) {
+            var key = keys[keyIndex];
+            keyIndex = keyIndex === 0 ? 1 : 0;
+            var url = encodeURI('https://na.api.pvp.net/api/lol/na/v4.1/game/ids?beginDate=' + time + '&api_key=' + key);
+
+            console.log(time);
+            var matchDate = new Date(time*1000).toISOString();
+
             request(url, function (error, response, body) {
                 if (!error && response.statusCode == 200) {
                     var parsedBody = JSON.parse(body);
-                    //console.log(parsedBody['teams'][0]);
-                    var match = new MatchData({match_data: parsedBody});
-                    match.save(function (err, results) {
-                        if (err)
-                        {
-                            console.log(err);
-                        } else {
-                            console.log('added a match');
-                            res.json(results);
-                        }
-                    })
+                    console.log(parsedBody);
+                    for (var i =0;i<parsedBody.length;i++)
+                    {
+                        console.log(parsedBody[i]);
+                        var match = new MatchID({uid: parsedBody[i],date:matchDate});
+                        match.save(function (err, results) {
+                            if (err)
+                            {
+                                console.log(err);
+                            } else {
+                                console.log('added match ID' + results);
+                            }
+                        })
+                    }
                 }
             })
+            res.json({'reply':'success'});
         },
         populateMatchData: function (req, res) {
             MatchID.find({loaded:null}).limit(20).exec(function (err, results) {

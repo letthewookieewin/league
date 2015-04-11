@@ -24,12 +24,19 @@ var pick_data_c = require('./../server/controllers/pick_data_c.js');
     app.get('/fetch_data', function(req,res){
       res.render('fetch');
     });
+    app.get('/chord', function(req,res){
+      res.render('chord');
+    });
     // app.post('/store_match_data_in_db', function(req,res){
     //   pick_data_c.add(req,res);
     //   //console.log(req.body);
     // });
     app.get('/store_match_data_in_db', function(req,res){
       pick_data_c.populateMatchData(req,res);
+      //console.log(req.body);
+    });
+    app.get('/get_match_ids/:time', function(req,res){
+      pick_data_c.populateMatchIDs(req,res,req.params.time);
       //console.log(req.body);
     });
     app.get('/migrate', function(req,res){

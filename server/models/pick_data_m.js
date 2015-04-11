@@ -7,9 +7,9 @@ var matchDataSchema = new mongoose.Schema({
 });
 var matchIDSchema = new mongoose.Schema({
 	uid: Number,
-	date: Date,
-	scanned: Number,
-	loaded: Number
+	date: {type: Date, default: new Date},
+	scanned: {type:Number,default: null},
+	loaded: {type:Number,default: null}
 });
 var championIDSchema = new mongoose.Schema({
 	id: Number,

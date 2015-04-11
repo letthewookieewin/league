@@ -38,6 +38,7 @@
                 var pick_data = [];
                 var champion_data = [];
                 var match_data = [];
+                var counter = 0;
                 // lets edit our angular factory's getPicks method as follows
                 factory.getPicks = function (callback) {
                     // Where do we get access to $http?
@@ -55,6 +56,21 @@
                         // console.log(pick_data);
                         callback(output);
                     })
+                }
+                factory.getMatchIDs = function (time, callback) {
+                    // Where do we get access to $http?
+                    $('.spinner').show();
+                    var newTime = counter + time;
+                    counter += 300;
+                    $http.get('/get_match_ids/' + newTime).success(function (output) {
+                        //pick_data = output;
+                        // console.log(pick_data);
+                        callback(output);
+                    })
+                }
+                factory.resetCounter = function()
+                {
+                    counter = 0;
                 }
                 factory.migrate = function (callback) {
                     // Where do we get access to $http?
@@ -94,14 +110,33 @@
                 $scope.postMatchData = function()
                 {
                     var timeout = 0;
-                    for (var i = 0;i<100;i++)
+                    for (var i = 0;i<200;i++)
                     {
                         setTimeout(function(){LeagueFactory.postMatchData(function (data) {
                             $('.spinner').hide();
                             console.log(data);
                             });
                         },timeout);
-                        timeout += 30000;
+                        timeout += 25000;
+                    }
+                }
+                $scope.getMatchIDs = function()
+                {
+                    var startTime = '2015-04-' + $('#sday').val() + ' ' + $('#shour').val() + ':' + $('#sminute').val();
+                    startTime = moment(startTime).unix();
+                    console.log(startTime);
+                    LeagueFactory.resetCounter();
+                    var timeout = 0;
+
+                    for (var i=0;i<144;i++)
+                    {
+                        setTimeout(function() {LeagueFactory.getMatchIDs(startTime, function(data)
+                            {
+                                $('.spinner').hide();
+                                console.log(data);
+                            });
+                        },timeout);
+                        timeout += 1500;
                     }
                 }
                 $scope.migrate = function()
@@ -135,18 +170,27 @@
             </div>
             <div class="row">
                 <div class="col-md-8 col-md-offset-2">
-                    <form id='match-data'>
-                        <!--display any error messages in this session-->
+                    <form>
                         <h1>Click to get match data</h1>
                         <!-- <button class="match-data btn btn-info" type="submit">Go!</button> -->
                         <button class="match-data btn btn-info" type="submit" ng-click='postMatchData()'>Go!</button>
                     </form>
                 </div>
             </div>
+            <div class ="row">
+                <div class='col-md-8 col-md-offset-2'>
+                    <form>
+                        <h1>Fill out forms to get match IDs</h1>
+                            <input id='sday' type='text' name='shour' placeholder='enter start day'>
+                            <input id='shour' type='text' name='shour' placeholder='enter start hour'>
+                            <input id='sminute' type='text' name='sminute' placeholder='enter start minute'>
+                        <button class="test btn btn-info" type="submit" ng-click='getMatchIDs()'>Go!</button>
+                    </form>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-md-8 col-md-offset-2">
-                    <form id='match-data'>
-                        <!--display any error messages in this session-->
+                    <form>
                         <h1>Click to get migrate sql to mongo</h1>
                         <!-- <button class="match-data btn btn-info" type="submit">Go!</button> -->
                         <!-- <button class="match-data btn btn-info" type="submit" ng-click='migrateChamps()'>Go!</button> -->
