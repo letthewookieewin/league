@@ -4,7 +4,7 @@
 
 body {
   font: 12px sans-serif;
-  background-color: black;
+  background-color: LightBlue;
 }
 
 .chord path {
@@ -16,70 +16,228 @@ body {
 <script src="/js/d3.js"></script>
 <script type="text/javascript">
 /***************************** find_unique function *****************************/
-function find_unique(string){
-  var split_str = string.split(" ");
-  var unique_str = [];
-  var check = 0;
-  for (var i = 0; i < split_str.length; i++) {
-    for (var j = 0; j < unique_str.length; j++) {
-      if (unique_str[j] == split_str[i]){
-        check = 1;
-        j=unique_str.length;
-      }
-      else{
-        check = 0;
-      }
-    }
-    if (check === 0) {
-      unique_str.push(split_str[i]);
-    }
-  }
-  return unique_str;
-}
+// function find_unique(string){
+//   var split_str = string.split(" ");
+//   var unique_str = [];
+//   var check = 0;
+//   for (var i = 0; i < split_str.length; i++) {
+//     for (var j = 0; j < unique_str.length; j++) {
+//       if (unique_str[j] == split_str[i]){
+//         check = 1;
+//         j=unique_str.length;
+//       }
+//       else{
+//         check = 0;
+//       }
+//     }
+//     if (check === 0) {
+//       unique_str.push(split_str[i]);
+//     }
+//   }
+//   return unique_str;
+// }
 // var orig_str = "Annie Ashe Annie Caitlyn Darius Diana Elise Evelyn Janna Katarina Leona Lulu Olaf Oriana Viktor Vladimir Ahri Mundo Draven Fiora Garen Jayce Kayle Malzahar Yi Nami Nunu Poppy Shen Shyvana Tristana Vayne Wukong Xin Zhao Yorick Akali Alistar Amumu Anivia Cassiopeia Corki Ezreal Gragas Heimerdinger Irelia Jarvan Jax Karma Karthus Kassadin Kennen Lux Morgana Nasus Nidalee Riven Ryze Sejuani Sivir Sona Soraka Swain Syndra Taric Varus Warwick Zed Zilean Blitzcrank Brand Cho' gath Fiddlesticks Fizz Galio Hecarim Kha' zix Kog' maw LeBlanc Malphite Maokai Mordekaiser Rammus Renekton Rengar Shaco Sion Skarner Teemo Trundle Tryndamere Udyr Urgot Veigar Xerath Ziggs Zyra Lee Sin Miss Fortune Nautilus Nocturne Pantheon Rumble Singed Talon Thresh Twisted Fate Twitch Vi Volibear";
 
-var orig_str = "Annie Ashe Annie Caitlyn Darius Diana Elise Evelyn Janna Katarina";
+//var orig_str = "Annie Ashe Annie Caitlyn Darius Annie Annie Annie Diana Elise Evelyn Janna Katarina Leona Lulu Olaf Oriana Viktor Vladimir";
 
 //find_unique(orig_str);
-var word_array = find_unique(orig_str);
+// var word_array = champion_array;
 //["Annie", "Ashe", "Caitlyn",  "Darius", "Diana", "Elise", "Evelyn", "Janna", "Katarina", "Leona", "Lulu", "Olaf", "Oriana", "Viktor", "Vladimir"]
 
+/***************************** champion names function *****************************/
+champion_array = { '1': { name: 'Annie'},
+  '2': { name: 'Olaf'},
+  '3': { name: 'Galio'},
+  '5': { name: 'Xin Zhao'},
+  '7': { name: 'LeBlanc'},
+  '8': { name: 'Vladimir'},
+  '9': { name: 'Fiddlesticks'},
+  '11': { name: 'Master Yi' },
+  '12': { name: 'Alistar'},
+  '15': { name: 'Sivir'},
+  '17': { name: 'Teemo'},
+  '20': { name: 'Nunu'},
+  '22': { name: 'Ashe'},
+  '25': { name: 'Morgana'},
+  '26': { name: 'Zilean'},
+  '30': { name: 'Karthus'},
+  '31': { name: 'Cho\'Gath'},
+  '32': { name: 'Amumu'},
+  '33': { name: 'Rammus'},
+  '35': { name: 'Shaco'},
+  '36': { name: 'Dr. Mundo'},
+  '44': { name: 'Taric'},
+  '50': { name: 'Swain'},
+  '53': { name: 'Blitzcrank'},
+  '54': { name: 'Malphite'},
+  '57': { name: 'Maokai'},
+  '59': { name: 'Jarvan IV'},
+  '62': { name: 'Wukong'},
+  '63': { name: 'Brand'},
+  '67': { name: 'Vayne'},
+  '72': { name: 'Skarner'},
+  '74': { name: 'Heimerdinger'},
+  '75': { name: 'Nasus'},
+  '78': { name: 'Poppy'},
+  '79': { name: 'Gragas'},
+  '81': { name: 'Ezreal'},
+  '84': { name: 'Akali'},
+  '86': { name: 'Garen'},
+  '90': { name: 'Malzahar'},
+  '99': { name: 'Lux'},
+  '105': { name: 'Fizz'},
+  '111': { name: 'Nautilus'},
+  '114': { name: 'Fiora'},
+  '120': { name: 'Hecarim'},
+  '121': { name: 'Kha\'Zix'},
+  '126': { name: 'Jayce'},
+  '127': { name: 'Lissandra'},
+  '131': { name: 'Diana'},
+  '133': { name: 'Quinn'},
+  '134': { name: 'Syndra'},
+  '143': { name: 'Zyra'},
+  '157': { name: 'Yasuo'},
+  '222': { name: 'Jinx'},
+  '236': { name: 'Lucian'},
+  '238': { name: 'Zed'},
+  '254': { name: 'Vi'},
+  '432': { name: 'Bard'}
+};
 
+/***************************** Wins data *****************************/
+  wins_object = { '1': { name: 'Annie', wins: 10},
+  '2': { name: 'Olaf', wins: 10},
+  '3': { name: 'Galio', wins: 10},
+  '5': { name: 'Xin Zhao', wins: 12},
+  '7': { name: 'LeBlanc', wins: 13},
+  '8': { name: 'Vladimir', wins: 14},
+  '9': { name: 'Fiddlesticks', wins: 15},
+  '11': { name: 'Master Yi', wins: 81},
+  '12': { name: 'Alistar', wins: 17},
+  '15': { name: 'Sivir', wins: 19},
+  '17': { name: 'Teemo', wins: 1},
+  '20': { name: 'Nunu', wins: 1},
+  '22': { name: 'Ashe', wins: 61},
+  '25': { name: 'Morgana', wins: 71},
+  '26': { name: 'Zilean', wins: 1},
+  '30': { name: 'Karthus', wins: 1},
+  '31': { name: 'Cho\'Gath', wins: 1},
+  '32': { name: 'Amumu', wins: 1},
+  '33': { name: 'Rammus', wins: 61},
+  '35': { name: 'Shaco', wins: 17},
+  '36': { name: 'Dr. Mundo', wins: 51},
+  '44': { name: 'Taric', wins: 71},
+  '50': { name: 'Swain', wins: 14},
+  '53': { name: 'Blitzcrank', wins: 1},
+  '54': { name: 'Malphite', wins: 11},
+  '57': { name: 'Maokai', wins: 31},
+  '59': { name: 'Jarvan IV', wins: 13},
+  '62': { name: 'Wukong', wins: 1},
+  '63': { name: 'Brand', wins: 41},
+  '67': { name: 'Vayne', wins: 11},
+  '72': { name: 'Skarner', wins: 411},
+  '74': { name: 'Heimerdinger', wins: 41},
+  '75': { name: 'Nasus', wins: 11},
+  '78': { name: 'Poppy', wins: 25},
+  '79': { name: 'Gragas', wins: 1},
+  '81': { name: 'Ezreal', wins: 1},
+  '84': { name: 'Akali', wins: 17},
+  '86': { name: 'Garen', wins: 12},
+  '90': { name: 'Malzahar', wins: 14},
+  '99': { name: 'Lux', wins: 15},
+  '105': { name: 'Fizz', wins: 1},
+  '111': { name: 'Nautilus', wins: 1},
+  '114': { name: 'Fiora', wins: 1},
+  '120': { name: 'Hecarim', wins: 1},
+  '121': { name: 'Kha\'Zix', wins: 1},
+  '126': { name: 'Jayce', wins: 19},
+  '127': { name: 'Lissandra', wins: 19},
+  '131': { name: 'Diana', wins: 1},
+  '133': { name: 'Quinn', wins: 1},
+  '134': { name: 'Syndra', wins: 11},
+  '143': { name: 'Zyra', wins: 13},
+  '157': { name: 'Yasuo', wins: 13},
+  '222': { name: 'Jinx', wins: 11},
+  '236': { name: 'Lucian', wins: 17},
+  '238': { name: 'Zed', wins: 14},
+  '254': { name: 'Vi', wins: 13},
+  '432': { name: 'Bard', wins: 15} };
 
+//get champ names from object
+function get_champ_names(arr){
+  temp = [];
+  for (var objectKey in arr){
+    temp.push((arr[objectKey].name));
+  }
+  return temp;
+}
+
+//get champ wins from object
+function get_champ_wins(arr){
+  temp = [];
+  for (var objectKey in arr){
+    temp.push((arr[objectKey].wins));
+  }
+  return temp;
+}
+
+champion_wins_array = get_champ_wins(wins_object);
+champion_names_array = get_champ_names(champion_array);
+// console.log(champion_wins_array);
+console.log(champion_names_array);
 
 /***************************** create_matrix function *****************************/
 
-function create_matrix(orig_string, array){
-    // console.log(array);
-    // console.log(orig_string);
+// function create_matrix(orig_string, array){
+//     // console.log(array);
+//     // console.log(orig_string);
+//   var matrix = [];
+//   // var inner_array = [];
+//   // var check = 0;
+//   var whole_string = orig_string.split(/\s+/g);
+//   var x = 0;
+//   var y = 0;
+//     for (i=0;i<array.length;i++) {
+//         matrix[i] = new Array();
+//         for (j=0;j<array.length;j++) {
+//             matrix[i][j]=0;
+//         }
+//     }
+//     // x = array.indexOf(whole_string[whole_string.length-1]);
+//     // // console.log("*****", whole_string[whole_string.length-1]);
+//     // y = array.indexOf(whole_string[whole_string.length-2]);
+//     //  matrix[x][y] = matrix[x][y] + 1;
+//     //  matrix[y][x] = matrix[y][x] + 1;
+//   for (var i = whole_string.length-2; i >= 0; i--) {
+//       x = array.indexOf(whole_string[i]);
+//       y = array.indexOf(whole_string[i+1]);
+//       matrix[x][y] = matrix[x][y] + 1;
+//       matrix[y][x] = matrix[y][x] + 1;
+//       // whole_string.pop();
+//     }
+//     return matrix;
+// }
+
+function create_matrix(arr1, arr2){
   var matrix = [];
-  // var inner_array = [];
-  // var check = 0;
-  var whole_string = orig_string.split(/\s+/g);
   var x = 0;
   var y = 0;
-    for (i=0;i<array.length;i++) {
-        matrix[i] = new Array();
-        for (j=0;j<array.length;j++) {
-            matrix[i][j]=0;
-        }
+
+  for( var i = 0; i<arr1.length; i++){
+    matrix[i] = [];
+    for (var j = 0; j<arr1.length; j++) {
+      randNum = Math.floor((Math.random() * 10) + 1);
+      matrix[i][j] = randNum;
     }
-    // x = array.indexOf(whole_string[whole_string.length-1]);
-    // // console.log("*****", whole_string[whole_string.length-1]);
-    // y = array.indexOf(whole_string[whole_string.length-2]);
-    //  matrix[x][y] = matrix[x][y] + 1;
-    //  matrix[y][x] = matrix[y][x] + 1;
-  for (var i = whole_string.length-2; i >= 0; i--) {
-      x = array.indexOf(whole_string[i]);
-      y = array.indexOf(whole_string[i+1]);
-      matrix[x][y] = matrix[x][y] + 1;
-      matrix[y][x] = matrix[y][x] + 1;
-      // whole_string.pop();
-    }
-    return matrix;
+  }//end of creating empty matrix
+
+
+
+  return matrix;
 }
 
-var matrix = create_matrix(orig_str, word_array)
+//actually creating matrix
+var matrix = create_matrix(champion_names_array, champion_wins_array);
 
 console.log(matrix);
 
@@ -88,11 +246,12 @@ var chord = d3.layout.chord()
     .sortSubgroups(d3.descending)
     .matrix(matrix);
 
-var width = 550,
+var width = 850,
     height = 550,
-    innerRadius = Math.min(width, height) * .37,
+    innerRadius = Math.min(width, height) * .25,
     outerRadius = innerRadius*1.2;
 
+/***************************** random color function *****************************/
 function create_range(array){
   var output = [];
   for (var i = 0; i < array.length; i++) {
@@ -101,16 +260,17 @@ function create_range(array){
   return output;
 }
 
-var range_array = create_range(word_array);
+//generates random colors for each connection
+var range_array = create_range(champion_names_array);
 
 var fill = d3.scale.ordinal()
-    .domain(d3.range(word_array.length))
+    .domain(d3.range(champion_names_array.length))
     .range(range_array);
 
 var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height)
-  .append("g")
+    .append("g")
     .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
 svg.append("g").selectAll("path")
@@ -132,6 +292,7 @@ var ticks = svg.append("g").selectAll("g")
           + "translate(" + outerRadius + ",0)";
     });
 
+//individual ticks color
 ticks.append("line")
     .attr("x1", 1)
     .attr("y1", 0)
@@ -156,7 +317,7 @@ svg.append("g")
     .style("fill", function(d) { return fill(d.target.index); })
     .style("opacity", 0.9);
 
-var label_array = word_array;
+var label_array = champion_names_array;
 
 // Returns an array of tick angles and labels, given a group.
 function groupTicks(d) {
@@ -168,7 +329,7 @@ function groupTicks(d) {
     return {
       angle: v * k + d.startAngle,
       //label: i % 5 ? null : v / 1000 + "k"
-      label: word_array[d.index]
+      label: champion_names_array[d.index]
     };
   });
 }
