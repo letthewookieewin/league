@@ -13,6 +13,10 @@
 
         <script>
         //$('.spinner').hide();
+
+            var CONST_MATCHES_TO_SCAN = 10;
+            var CONST_WINDOWS_TO_FETCH = 288;
+
             // Lets create our angular module
             var league_app = angular.module('league_app', []);
             league_app.filter('orderObjectBy', function(){
@@ -32,16 +36,15 @@
                 return array;
              }
             });
-            // create the FriendFactory
+            // create the LeagueFactory
             league_app.factory('LeagueFactory', function ($http) {
                 var factory = {};
                 var pick_data = [];
                 var champion_data = [];
                 var match_data = [];
-                var counter = 0;
-                // lets edit our angular factory's getPicks method as follows
-                factory.getPicks = function (callback) {
-                    // Where do we get access to $http?
+                var matchIDCounter = 0;
+                var matchDataCounter = 1;
+               factory.getPicks = function (callback) {
                     $http.get('/pick_data').success(function (output) {
                         pick_data = output;
                         // console.log(pick_data);
@@ -49,28 +52,29 @@
                     })
                 }
                 factory.postMatchData = function (callback) {
-                    // Where do we get access to $http?
                     $('.spinner').show();
                     $http.get('/store_match_data_in_db').success(function (output) {
                         //pick_data = output;
                         // console.log(pick_data);
-                        callback(output);
+                        //callback(output);
+                        callback("Loaded match " + matchDataCounter + " of " + CONST_MATCHES_TO_SCAN + " ");
+                        matchDataCounter++;
                     })
                 }
                 factory.getMatchIDs = function (time, callback) {
-                    // Where do we get access to $http?
                     $('.spinner').show();
-                    var newTime = counter + time;
-                    counter += 300;
+                    var newTime = matchIDCounter + time;
+                    matchIDCounter += 300;
                     $http.get('/get_match_ids/' + newTime).success(function (output) {
                         //pick_data = output;
                         // console.log(pick_data);
                         callback(output);
                     })
                 }
-                factory.resetCounter = function()
+                factory.resetCounters = function()
                 {
-                    counter = 0;
+                    matchIDCounter = 0;
+                    matchDataCounter = 1;
                 }
                 factory.migrate = function (callback) {
                     // Where do we get access to $http?
@@ -92,7 +96,7 @@
                 }
                 return factory;
             });
-            // Now lets create a controller with some hardcoded data!
+            // create the leagueController
             league_app.controller('LeagueController', function ($scope, LeagueFactory) {
                 $scope.pick_data = LeagueFactory.getPicks(function (data) {
                     //d3js starts here
@@ -110,11 +114,13 @@
                 $scope.postMatchData = function()
                 {
                     var timeout = 0;
-                    for (var i = 0;i<200;i++)
+                    LeagueFactory.resetCounters();
+                    for (var i = 0;i<CONST_MATCHES_TO_SCAN;i++)
                     {
                         setTimeout(function(){LeagueFactory.postMatchData(function (data) {
                             $('.spinner').hide();
-                            console.log(data);
+                            $('.data').append(data);
+                            //console.log(data);
                             });
                         },timeout);
                         timeout += 25000;
@@ -125,10 +131,10 @@
                     var startTime = '2015-04-' + $('#sday').val() + ' ' + $('#shour').val() + ':' + $('#sminute').val();
                     startTime = moment(startTime).unix();
                     console.log(startTime);
-                    LeagueFactory.resetCounter();
+                    LeagueFactory.resetCounters();
                     var timeout = 0;
 
-                    for (var i=0;i<144;i++)
+                    for (var i=0;i<CONST_WINDOWS_TO_FETCH;i++)
                     {
                         setTimeout(function() {LeagueFactory.getMatchIDs(startTime, function(data)
                             {
@@ -156,7 +162,7 @@
             })
         </script>
     </head>
-    <!-- everything in the body is going to use the friends controller (this gives us access to the friends controller $scope) -->
+    <!-- everything in the body is going to use the league controller (this gives us access to the league controller $scope) -->
 
     <body id='viz' ng-controller='LeagueController'>
         <div class="container">

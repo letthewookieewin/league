@@ -1,4 +1,4 @@
-// this is our pick_data_c.js controller file located at /server/controllers/friends.js
+// this is our pick_data_c.js controller file
 // note the immediate function and the object that is returned
 
 // First add the following lines at the top of the friends controller so that we can access our models
@@ -15,6 +15,7 @@ var request = require('request');
 var keyIndex = 0;
 var keys = ['5ec9cf1a-71be-44ef-8a54-e2ce3bbc1e45', '664b8522-f6e1-466e-9ca3-10123fe43058'];
 
+var CONST_MATCHES_LOADED = 100;
 
 //mark a single match as scanned in the db
 //scanned matches have had their match data stored
@@ -42,7 +43,6 @@ function markMatchAsLoaded(matchId)
     })
 };
 
-
 //init some output objects that we'll populate and throw back to the viewer
 var championData;
 var matchData;
@@ -69,7 +69,7 @@ var total_picks = 0;
 (function ()
 {
     //change limit to modify documents captured
-    MatchData.find({}).limit(10).exec(function (err, results) {
+    MatchData.find({}).limit(CONST_MATCHES_LOADED).exec(function (err, results) {
         if (err) {
             console.log(err);
         } else {
@@ -124,6 +124,7 @@ var total_picks = 0;
 //functions to export to our server
 module.exports = (function () {
     return {
+        //for the given unix time, perform an API call for the match IDs for that window
         populateMatchIDs: function (req, res, time) {
             var key = keys[keyIndex];
             keyIndex = keyIndex === 0 ? 1 : 0;
@@ -153,6 +154,7 @@ module.exports = (function () {
             })
             res.json({'reply':'success'});
         },
+        //get 20 match IDs from the db and then perform an API call for each ID to get the match data
         populateMatchData: function (req, res) {
             MatchID.find({loaded:null}).limit(20).exec(function (err, results) {
                 if (err) {
@@ -188,11 +190,14 @@ module.exports = (function () {
                 }
             })
         },
+        //retrieve all the pick_data assembled when the server started up
         getPickData: function (req, res)
         {
             var data = {'pick_data': pick_data, 'total_picks': total_picks};
             res.json(data);
         },
+        //deprecated
+        //populates the pick_data object on demand
         scrub: function (req, res, champs, matches)
         {
             var champions = champs;
@@ -223,13 +228,12 @@ module.exports = (function () {
                 }
             }
 
-
-
             var data = {'pick_data': pick_data, 'total_picks': total_picks};
 
             //console.log(total_picks);
             res.json(data);
         },
+        //migrate champion data from mysql to mongodb
         migrateChamps: function (req, res) {
             connection.connect();
             connection.query('SELECT * from champions', function (err, rows, fields) {
@@ -260,6 +264,7 @@ module.exports = (function () {
                 connection.end();
             });
         },
+        //migrate match IDs from mysql to mongodb
         migrate: function (req, res) {
             connection.connect();
             connection.query('SELECT * from matches', function (err, rows, fields) {

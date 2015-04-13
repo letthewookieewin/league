@@ -1,21 +1,23 @@
-// This is the friend.js file located at /server/models/friend.js
-// We want to create a file that has the schema for our friends and creates a model that we can then call upon in our controller
+// This is the pick_data_m.js file
+// We want to create a file that has the schemas for our app and creates models that we can then call upon in our controller
 var mongoose = require('mongoose');
-// create our leagueSchema
+// create our matchDataSchema proto that holds the data object for one match
 var matchDataSchema = new mongoose.Schema({
 	match_data: Object
 });
+// create our matchIDSchema proto that holds a single match ID
 var matchIDSchema = new mongoose.Schema({
 	uid: Number,
 	date: {type: Date, default: new Date},
 	scanned: {type:Number,default: null},
 	loaded: {type:Number,default: null}
 });
+// create our championIDSchema proto that holds the id and name of a single champion
 var championIDSchema = new mongoose.Schema({
 	id: Number,
 	name: String
 });
-// use the schema to create the model
+// use the schemas to create the models
 // Note that creating a model CREATES the collection in the database (makes the collection plural)
 mongoose.model('MatchData', matchDataSchema);
 mongoose.model('MatchID', matchIDSchema);
