@@ -1,67 +1,26 @@
-<!DOCTYPE html>
-<meta charset="utf-8">
-<style>
-
-body {
-  font: 12px sans-serif;
-  background-color: LightBlue;
-}
-
-.chord path {
-  fill-opacity: .79;
-}
-
-</style>
-<body>
-<script src="/js/d3.js"></script>
-<script type="text/javascript">
-/***************************** find_unique function *****************************/
-// function find_unique(string){
-//   var split_str = string.split(" ");
-//   var unique_str = [];
-//   var check = 0;
-//   for (var i = 0; i < split_str.length; i++) {
-//     for (var j = 0; j < unique_str.length; j++) {
-//       if (unique_str[j] == split_str[i]){
-//         check = 1;
-//         j=unique_str.length;
-//       }
-//       else{
-//         check = 0;
-//       }
-//     }
-//     if (check === 0) {
-//       unique_str.push(split_str[i]);
-//     }
-//   }
-//   return unique_str;
-// }
-// var orig_str = "Annie Ashe Annie Caitlyn Darius Diana Elise Evelyn Janna Katarina Leona Lulu Olaf Oriana Viktor Vladimir Ahri Mundo Draven Fiora Garen Jayce Kayle Malzahar Yi Nami Nunu Poppy Shen Shyvana Tristana Vayne Wukong Xin Zhao Yorick Akali Alistar Amumu Anivia Cassiopeia Corki Ezreal Gragas Heimerdinger Irelia Jarvan Jax Karma Karthus Kassadin Kennen Lux Morgana Nasus Nidalee Riven Ryze Sejuani Sivir Sona Soraka Swain Syndra Taric Varus Warwick Zed Zilean Blitzcrank Brand Cho' gath Fiddlesticks Fizz Galio Hecarim Kha' zix Kog' maw LeBlanc Malphite Maokai Mordekaiser Rammus Renekton Rengar Shaco Sion Skarner Teemo Trundle Tryndamere Udyr Urgot Veigar Xerath Ziggs Zyra Lee Sin Miss Fortune Nautilus Nocturne Pantheon Rumble Singed Talon Thresh Twisted Fate Twitch Vi Volibear";
-
-//var orig_str = "Annie Ashe Annie Caitlyn Darius Annie Annie Annie Diana Elise Evelyn Janna Katarina Leona Lulu Olaf Oriana Viktor Vladimir";
-
-//find_unique(orig_str);
-// var word_array = champion_array;
-//["Annie", "Ashe", "Caitlyn",  "Darius", "Diana", "Elise", "Evelyn", "Janna", "Katarina", "Leona", "Lulu", "Olaf", "Oriana", "Viktor", "Vladimir"]
-
 /***************************** champion names function *****************************/
 
-createChord();
+function createChord(array, champion_data){
 
-function createChord(){
+var counter_array = array;
 
-champion_array = { '1': { name: 'Annie'},
-  '2': { name: 'Olaf'},
-  '3': { name: 'Galio'},
-  '5': { name: 'Xin Zhao'},
-  '7': { name: 'LeBlanc'},
-  '8': { name: 'Vladimir'},
-  '9': { name: 'Fiddlesticks'},
-  '11': { name: 'Master Yi' },
-  '12': { name: 'Alistar'},
+var champion_array = {};
 
+for (var i = 0; i < champion_data.length;i++)
+{
+  champion_array[champion_data[i]['id']] = {name: champion_data[i]['name']};
+}
 
-};
+// champion_array = { '1': { name: 'Annie'},
+//   '2': { name: 'Olaf'},
+//   '3': { name: 'Galio'},
+//   '5': { name: 'Xin Zhao'},
+//   '7': { name: 'LeBlanc'},
+//   '8': { name: 'Vladimir'},
+//   '9': { name: 'Fiddlesticks'},
+//   '11': { name: 'Master Yi' },
+//   '12': { name: 'Alistar'},
+// };
 
 /***************************** Wins data *****************************/
   wins_object = { '1': { name: 'Annie', wins: 10},
@@ -143,7 +102,7 @@ function get_champ_wins(arr){
 champion_wins_array = get_champ_wins(wins_object);
 champion_names_array = get_champ_names(champion_array);
 // console.log(champion_wins_array);
-console.log(champion_names_array);
+//console.log(champion_names_array);
 
 /***************************** create_matrix function *****************************/
 
@@ -177,36 +136,60 @@ console.log(champion_names_array);
 //     return matrix;
 // }
 
-function create_matrix(arr1, arr2){
+function create_matrix(){
+
+  //create the matrix from the array passed to createChord
+  //there is probably bug if not every champion has row data, as the champion array assumes everyone is picked at least once
   var matrix = [];
-  var x = 0;
-  var y = 0;
 
-  for( var i = 0; i<arr1.length; i++){
+  for (var i = 0;i<counter_array.length;i++)
+  {
     matrix[i] = [];
-    for (var j = 0; j<arr1.length; j++) {
-      randNum = Math.random();
-      matrix[i][j] = randNum;
+    var countersToDisplay = 3;
+    var winThreshold = 0;
+    var topCounters = [];
+    for (var j=0;j<counter_array.length;j++)
+    {
+      if (counter_array[i][j] != null)
+      {
+        topCounters.push(counter_array[i][j]['wins_against']);
+        topCounters.sort(function(a, b){return b-a});
+        //check to see if this is one of the top x counters
+        if (topCounters.length > countersToDisplay)
+        {
+          topCounters.pop();
+        }
+      }
     }
-  }//end of creating empty matrix
+    //console.log(topCounters);
+    for (var j=0;j<counter_array.length;j++)
+    {
+      if (counter_array[i][j] != null && counter_array[i][j]['wins_against'] >= topCounters[2])
+      {
+          //store wins against this champion
+          matrix[i][j] = counter_array[i][j]['wins_against'];
+      }else{
+          matrix[i][j] = 0;
+      }
+    }
+  }
 
-
-
+  console.log(matrix);
   return matrix;
 }
 
 //actually creating matrix
-var matrix = create_matrix(champion_names_array, champion_wins_array);
+var matrix = create_matrix();
 
-console.log(matrix);
+//console.log(matrix);
 
 var chord = d3.layout.chord()
     .padding(0)
     .sortSubgroups(d3.descending)
     .matrix(matrix);
 
-var width = 850,
-    height = 550,
+var width = 850 * 2,
+    height = 550 * 2,
     innerRadius = Math.min(width, height) * .25,
     outerRadius = innerRadius*1.2;
 
@@ -305,5 +288,3 @@ function fade(opacity) {
   };
 }
 }
-
-</script>

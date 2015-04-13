@@ -18,8 +18,12 @@ var pick_data_c = require('./../server/controllers/pick_data_c.js');
     });
     app.get('/pick_data', function(req,res){
       pick_data_c.getPickData(req,res);
-      //console.log(pick_data.length);
-      //res.json(pick_data);
+    });
+    app.get('/counter_data', function(req,res){
+      pick_data_c.getCounterData(req,res);
+    });
+    app.get('/champion_data', function(req,res){
+      pick_data_c.getChampionData(req,res);
     });
     app.get('/fetch_data', function(req,res){
       res.render('fetch');

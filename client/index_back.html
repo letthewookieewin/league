@@ -20,6 +20,7 @@
                 var pick_data = [];
                 var champion_data = [];
                 var match_data = [];
+                var counter_data = [];
                 // lets edit our angular factory's getFriends method as follows
                 factory.getPicks = function (callback) {
                     // Where do we get access to $http?
@@ -27,6 +28,14 @@
                         pick_data = output;
                         // console.log(pick_data);
                         callback(pick_data);
+                    })
+                }
+                factory.getCounters = function (callback) {
+                    // Where do we get access to $http?
+                    $http.get('/counter_data').success(function (output) {
+                        counter_data = output;
+                        console.log(counter_data);
+                        callback(counter_data);
                     })
                 }
                 return factory;
@@ -47,6 +56,25 @@
                     $scope.pick_data = pick_array;
                     //$scope.champ_names = data.champ_names;
                 });
+                $scope.counter_data = LeagueFactory.getCounters(function (data) {
+                    //d3js starts here
+                    //runD3(data);
+                    //$scope.total_picks = data.total_picks;
+                    var counter_data = data.counter_data;
+                    var counter_array = [];
+                    for (var champion in counter_data)
+                    {
+                      var champArray = [];
+                      for (var counter in counter_data[champion])
+                      {
+                        champArray.push(counter_data[champion][counter]);
+                      }
+                      counter_array.push(champArray);
+                    }
+                    console.log(counter_array);
+                    $scope.counter_data = counter_array[0];
+                    //$scope.champ_names = data.champ_names;
+                });
             })
         </script>
     </head>
@@ -59,23 +87,26 @@
                     <h1 class="display">Welcome to our Riot API Challenge Entry</h1>
                 </div>
                 <table class='table'>
-                    <tr>
+                    <!-- <tr>
                         <th>Champion Name</th>
                         <th>Times picked</th>
                         <th>As percentage of overall picks</th>
-                        <!-- <th>Times banned</th> -->
                     </tr>
                     <tr ng-repeat='pick in pick_data | filter:filter_name | orderBy:"-picks"'>
                         <td ng-bind='pick.name'></td>
                         <td ng-bind='pick.picks'></td>
                         <td ng-bind='pick.picks / total_picks * 100'></td>
-                    </tr>
-                    <!-- <tr ng-repeat='pick in pick_data | filter:filter_name track by $index | orderBy:"name"'>
-                        <td ng-bind='pick.name'></td>
-                        <td ng-bind='pick.picks'></td>
-                        <td ng-bind='pick.bans'></td>
                     </tr> -->
-
+                    <tr>
+                        <th>Champion Name</th>
+                        <th>Times picked</th>
+                        <th>As percentage of overall picks</th>
+                    </tr>
+                    <tr ng-repeat='counter in counter_data | filter:filter_name | orderBy:"-wins_against"'>
+                        <td ng-bind='counter.name'></td>
+                        <td ng-bind='counter.wins_against'></td>
+                        <td ng-bind='counter.wins_against / total_picks * 100'></td>
+                    </tr>
                 </table>
             </div>
         </div>

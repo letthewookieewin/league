@@ -15,7 +15,7 @@ var request = require('request');
 var keyIndex = 0;
 var keys = ['5ec9cf1a-71be-44ef-8a54-e2ce3bbc1e45', '664b8522-f6e1-466e-9ca3-10123fe43058'];
 
-var CONST_MATCHES_LOADED = 100;
+var CONST_MATCHES_LOADED = 1000;
 
 //mark a single match as scanned in the db
 //scanned matches have had their match data stored
@@ -63,6 +63,7 @@ var matchData;
 
 //init our pick_data object which holds all info on how many times a champ was picked
 var pick_data = {};
+var counter_data = {};
 var total_picks = 0;
 
 //immediate function to get all the db match data on server startup
@@ -103,20 +104,48 @@ var total_picks = 0;
                 var participants = match_data['participants'];
                 for (var part in participants)
                 {
-                    var champion_id = participants[part]['championId'];
-
-                    if (pick_data[champion_id] === undefined)
+                    if (participants[part]['teamId'] === winning_id)
                     {
-                        pick_data[champion_id] = {'name': champ_names[champion_id], 'picks': 1};
-                        total_picks++;
-                    } else {
-                        pick_data[champion_id].picks++;
-                        total_picks++;
+                        var champion_id = participants[part]['championId'];
+                        for (var part2 in participants)
+                        {
+                            if (participants[part2]['teamId'] != winning_id)
+                            {
+                                var loser_id = participants[part2]['championId'];
+                                if (counter_data[champion_id] === undefined)
+                                {
+                                    counter_data[champion_id] = [];
+                                }
+                                if (counter_data[champion_id][loser_id] === undefined)
+                                {
+                                    counter_data[champion_id][loser_id] = {'name': champ_names[champion_id], 'wins_against': 1};
+                                    //total_wins++;
+                                } else {
+                                    counter_data[champion_id][loser_id].wins_against++;
+                                    //total_wins++;
+                                }
+                            }
+                        }
                     }
                 }
+
+                // var participants = match_data['participants'];
+                // for (var part in participants)
+                // {
+                //     var champion_id = participants[part]['championId'];
+
+                //     if (pick_data[champion_id] === undefined)
+                //     {
+                //         pick_data[champion_id] = {'name': champ_names[champion_id], 'picks': 1};
+                //         total_picks++;
+                //     } else {
+                //         pick_data[champion_id].picks++;
+                //         total_picks++;
+                //     }
+                // }
             }
 
-            console.log(pick_data);
+            console.log(counter_data);
         }
     })
 }());
@@ -194,6 +223,18 @@ module.exports = (function () {
         getPickData: function (req, res)
         {
             var data = {'pick_data': pick_data, 'total_picks': total_picks};
+            res.json(data);
+        },
+        //retrieve all the counter_data assembled when the server started up
+        getCounterData: function (req, res)
+        {
+            var data = {'counter_data': counter_data, 'total_picks': total_picks};
+            res.json(data);
+        },
+        //retrieve all the champion_data assembled when the server started up
+        getChampionData: function (req, res)
+        {
+            var data = {'champion_data': championData};
             res.json(data);
         },
         //deprecated
