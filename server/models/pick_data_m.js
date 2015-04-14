@@ -17,9 +17,14 @@ var championIDSchema = new mongoose.Schema({
 	id: Number,
 	name: String
 });
+// create our championIDSchema proto that holds the id and name of a single champion
+var counterDataSchema = new mongoose.Schema({
+	counter_data: Object
+});
 // use the schemas to create the models
 // Note that creating a model CREATES the collection in the database (makes the collection plural)
 mongoose.model('MatchData', matchDataSchema);
 mongoose.model('MatchID', matchIDSchema);
 mongoose.model('Champion', championIDSchema);
+mongoose.model('CounterData', counterDataSchema);
 // notice that we aren't exporting anything -- this is because this file will be run when we require it using our config file and then since the model is defined we'll be able to access it from our controller

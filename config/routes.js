@@ -25,6 +25,9 @@ var pick_data_c = require('./../server/controllers/pick_data_c.js');
     app.get('/champion_data', function(req,res){
       pick_data_c.getChampionData(req,res);
     });
+    app.get('/cache_counter_data', function(req,res){
+      pick_data_c.cacheMatchData(req,res);
+    });
     app.get('/fetch_data', function(req,res){
       res.render('fetch');
     });

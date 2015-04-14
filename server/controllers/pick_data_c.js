@@ -7,157 +7,169 @@ var mongoose = require('mongoose');
 var MatchData = mongoose.model('MatchData');
 var MatchID = mongoose.model('MatchID');
 var Champion = mongoose.model('Champion');
+var CounterData = mongoose.model('CounterData');
 
 //load up the http request module
 var request = require('request');
+
+//load up the console colors
+var colors = require('colors');
 
 //init the api keys we'll be using - doesn't support more than 2 keys right now
 var keyIndex = 0;
 var keys = ['5ec9cf1a-71be-44ef-8a54-e2ce3bbc1e45', '664b8522-f6e1-466e-9ca3-10123fe43058'];
 
-var CONST_MATCHES_LOADED = 1000;
+var CONST_MATCHES_LOADED = 100;
 
 // app.js
 var databaseUrl = "dojo:codingdojo12@ds031108.mongolab.com:31108/league"; // "username:password@example.com/mydb"
-var collections = ["matchdatas"]
+var collections = ["matchdatas","counterdatas"];
 var db = require("mongojs").connect(databaseUrl, collections);
-
-// app.js
-db.matchdatas.find({}).limit(CONST_MATCHES_LOADED, function(err, results) {
-  if( err || !results) console.log("No matches found");
-  else
-    //console.log(results);
-    //match_results = results;
-    parseMatchData(results);
-  //   users.forEach( function(femaleUser) {
-  //   console.log(femaleUser);
-  // } );
-});
-
-//mark a single match as scanned in the db
-//scanned matches have had their match data stored
-//kinda buggy right now ... matches that get stored don't always successfully write themselves as scanned
-function markMatchAsScanned(matchId)
-{
-    MatchID.update({uid:matchId},{$set:{scanned:1}}).exec(function (err, results) {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log("marked " + matchId + " as scanned");
-        }
-    })
-};
-//mark a single match as loaded in the db
-//loaded matches are ones that we've pulled from the db but haven't yet stored the match data for
-function markMatchAsLoaded(matchId)
-{
-    MatchID.update({uid:matchId},{$set:{loaded:1}}).exec(function (err, results) {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log("marked " + matchId + " as loaded");
-        }
-    })
-};
-
-//init some output objects that we'll populate and throw back to the viewer
-var championData;
-var matchData;
-
-//immediate function
-//on server startup, grab all our champion information from the db
-(function ()
-{
-    Champion.find({}).exec(function (err, results) {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log("pulled champ info from db!");
-            championData = results;
-        }
-    })
-}());
 
 //init our pick_data object which holds all info on how many times a champ was picked
 var pick_data = {};
 var counter_data = {};
 var total_picks = 0;
 
-//immediate function to get all the db match data on server startup
+//init some output objects that we'll populate and throw back to the viewer
+var championData;
+var matchData;
+
+//immediate function
+//on server startup, grab all our champion information from the db and then load up the cached data
+(function ()
+{
+    Champion.find({}).exec(function (err, results) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("SUCCESS : pulled champ info from db".green);
+            championData = results;
+            loadCachedData();
+        }
+    })
+}());
+
+function loadCachedData()
+{
+    console.log("attempting to load cached data".yellow);
+    db.counterdatas.find({}, function(err, results) {
+    if( err || !results) console.log("No counter data found");
+        else
+        for (var obj in results)
+        {
+            counter_data = results[obj]['counter_data'];
+            console.log("SUCCESS : counter data loaded and ready".green);
+        }
+    });
+}
+
+function cacheMatchData()
+{
+    console.log("attempting to load matches to parse".yellow);
+    //db.matchdatas.find({}).limit(CONST_MATCHES_LOADED, function(err, results) {
+    db.matchdatas.find({}, function(err, results) {
+      if( err || !results) console.log("No matches found");
+      else
+        console.log(results.length + ' matches loaded to parse'.yellow);
+        parseMatchData(results);
+    });
+}
+
+//function to get all the db match data and then store the results in the db
 function parseMatchData(results){
-    //return;
     //change limit to modify documents captured
-            console.log("parsing data");
+    console.log("parsing data".yellow);
 
-            var champ_names = [];
+    var champ_names = [];
 
-            for (var champion in championData)
+    for (var champion in championData)
+    {
+        if (champ_names[championData[champion].name] === undefined)
+        {
+            champ_names[championData[champion].id] = championData[champion].name;
+        }
+    }
+
+    //traverse results to populate necessary view data
+    var counter_data_l = {};
+    for (var obj in results)
+    {
+
+        var match_data = results[obj]['match_data'];
+        var teams = match_data['teams'];
+        //console.log(teams);
+        var winning_id = 0;
+        for (var team in teams)
+        {
+            if (teams[team]['winner'] === true)
             {
-                if (champ_names[championData[champion].name] === undefined)
-                {
-                    champ_names[championData[champion].id] = championData[champion].name;
-                }
+                winning_id = teams[team]['teamId'];
             }
-
-            //traverse results to populate necessary view data
-            for (var obj in results)
+        }
+        //console.log(winning_id);
+        var participants = match_data['participants'];
+        for (var part in participants)
+        {
+            if (participants[part]['teamId'] === winning_id)
             {
-                var match_data = results[obj]['match_data'];
-                var teams = match_data['teams'];
-                //console.log(teams);
-                var winning_id = 0;
-                for (var team in teams)
+                var champion_id = participants[part]['championId'];
+                for (var part2 in participants)
                 {
-                    if (teams[team]['winner'] === true)
+                    if (participants[part2]['teamId'] != winning_id)
                     {
-                        winning_id = teams[team]['teamId'];
-                    }
-                }
-                //console.log(winning_id);
-                var participants = match_data['participants'];
-                for (var part in participants)
-                {
-                    if (participants[part]['teamId'] === winning_id)
-                    {
-                        var champion_id = participants[part]['championId'];
-                        for (var part2 in participants)
+                        var loser_id = participants[part2]['championId'];
+                        if (counter_data_l[champion_id] === undefined)
                         {
-                            if (participants[part2]['teamId'] != winning_id)
-                            {
-                                var loser_id = participants[part2]['championId'];
-                                if (counter_data[champion_id] === undefined)
-                                {
-                                    counter_data[champion_id] = [];
-                                }
-                                if (counter_data[champion_id][loser_id] === undefined)
-                                {
-                                    counter_data[champion_id][loser_id] = {'name': champ_names[champion_id], 'wins_against': 1};
-                                    //total_wins++;
-                                } else {
-                                    counter_data[champion_id][loser_id].wins_against++;
-                                    //total_wins++;
-                                }
-                            }
+                            counter_data_l[champion_id] = [];
+                        }
+                        if (counter_data_l[champion_id][loser_id] === undefined)
+                        {
+                            counter_data_l[champion_id][loser_id] = {'name': champ_names[champion_id], 'wins_against': 1};
+                            //total_wins++;
+                        } else {
+                            counter_data_l[champion_id][loser_id].wins_against++;
+                            //total_wins++;
                         }
                     }
                 }
-
-                // var participants = match_data['participants'];
-                // for (var part in participants)
-                // {
-                //     var champion_id = participants[part]['championId'];
-
-                //     if (pick_data[champion_id] === undefined)
-                //     {
-                //         pick_data[champion_id] = {'name': champ_names[champion_id], 'picks': 1};
-                //         total_picks++;
-                //     } else {
-                //         pick_data[champion_id].picks++;
-                //         total_picks++;
-                //     }
-                // }
             }
-            console.log("data has been parsed, view ready to load");
+        }
+
+        // var participants = match_data['participants'];
+        // for (var part in participants)
+        // {
+        //     var champion_id = participants[part]['championId'];
+
+        //     if (pick_data[champion_id] === undefined)
+        //     {
+        //         pick_data[champion_id] = {'name': champ_names[champion_id], 'picks': 1};
+        //         total_picks++;
+        //     } else {
+        //         pick_data[champion_id].picks++;
+        //         total_picks++;
+        //     }
+        // }
+    }
+    //console.log(counter_data_l);
+    console.log("data has been parsed ... dropping previous cache and caching new data ...".yellow);
+    CounterData.remove({}, function (err, results) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("previous cache dropped!".red);
+            var data = new CounterData({counter_data: counter_data_l});
+            data.save(function (err, results) {
+                if (err)
+                {
+                    console.log(err);
+                } else {
+                    console.log("SUCCESS : data cached".green);
+                    loadCachedData();
+                }
+            })
+        }
+    });
 };
 
 //functions to export to our server
@@ -217,7 +229,7 @@ module.exports = (function () {
                                     {
                                         console.log(err);
                                     } else {
-                                        console.log('added match ' + results['match_data']['matchId']);
+                                        console.log('SUCCESS : added match '.green + results['match_data']['matchId']);
                                         markMatchAsScanned(results['match_data']['matchId']);
                                         //res.json(results);
                                     }
@@ -228,6 +240,12 @@ module.exports = (function () {
                     res.json({'reply':'success'});
                 }
             })
+        },
+        //retrieve all the match data in the db and cache the specific results back into the db
+        cacheMatchData: function(req,res)
+        {
+            cacheMatchData();
+            res.json({'reply':'success'});
         },
         //retrieve all the pick_data assembled when the server started up
         getPickData: function (req, res)
@@ -350,6 +368,32 @@ module.exports = (function () {
         }
     }
 })();
+
+//mark a single match as scanned in the db
+//scanned matches have had their match data stored
+//kinda buggy right now ... matches that get stored don't always successfully write themselves as scanned
+function markMatchAsScanned(matchId)
+{
+    MatchID.update({uid:matchId},{$set:{scanned:1}}).exec(function (err, results) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("marked " + matchId + " as scanned");
+        }
+    })
+};
+//mark a single match as loaded in the db
+//loaded matches are ones that we've pulled from the db but haven't yet stored the match data for
+function markMatchAsLoaded(matchId)
+{
+    MatchID.update({uid:matchId},{$set:{loaded:1}}).exec(function (err, results) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("marked " + matchId + " as loaded");
+        }
+    })
+};
 
 
 // connection.query('SELECT * from champions', function(err, rows, fields) {

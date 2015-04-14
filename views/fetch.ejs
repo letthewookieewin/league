@@ -94,6 +94,15 @@
                         callback(output);
                     })
                 }
+                factory.cacheCounters = function (callback) {
+                    // Where do we get access to $http?
+                    $('.spinner').show();
+                    $http.get('/cache_counter_data').success(function (output) {
+                        //pick_data = output;
+                        // console.log(pick_data);
+                        callback(output);
+                    })
+                }
                 return factory;
             });
             // create the leagueController
@@ -159,6 +168,13 @@
                         console.log(data);
                     });
                 }
+                $scope.cacheCounters = function()
+                {
+                    LeagueFactory.cacheCounters(function (data) {
+                        $('.spinner').hide();
+                        console.log(data);
+                    });
+                }
             })
         </script>
     </head>
@@ -191,6 +207,14 @@
                             <input id='shour' type='text' name='shour' placeholder='enter start hour'>
                             <input id='sminute' type='text' name='sminute' placeholder='enter start minute'>
                         <button class="test btn btn-info" type="submit" ng-click='getMatchIDs()'>Go!</button>
+                    </form>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2">
+                    <form>
+                        <h1>Click to recache counter data</h1>
+                        <button class="match-data btn btn-info" type="submit" ng-click='cacheCounters()'>Go!</button>
                     </form>
                 </div>
             </div>
