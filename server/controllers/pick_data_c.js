@@ -17,6 +17,23 @@ var keys = ['5ec9cf1a-71be-44ef-8a54-e2ce3bbc1e45', '664b8522-f6e1-466e-9ca3-101
 
 var CONST_MATCHES_LOADED = 1000;
 
+// app.js
+var databaseUrl = "dojo:codingdojo12@ds031108.mongolab.com:31108/league"; // "username:password@example.com/mydb"
+var collections = ["matchdatas"]
+var db = require("mongojs").connect(databaseUrl, collections);
+
+// app.js
+db.matchdatas.find({}).limit(CONST_MATCHES_LOADED, function(err, results) {
+  if( err || !results) console.log("No matches found");
+  else
+    //console.log(results);
+    //match_results = results;
+    parseMatchData(results);
+  //   users.forEach( function(femaleUser) {
+  //   console.log(femaleUser);
+  // } );
+});
+
 //mark a single match as scanned in the db
 //scanned matches have had their match data stored
 //kinda buggy right now ... matches that get stored don't always successfully write themselves as scanned
@@ -67,14 +84,10 @@ var counter_data = {};
 var total_picks = 0;
 
 //immediate function to get all the db match data on server startup
-(function ()
-{
+function parseMatchData(results){
+    //return;
     //change limit to modify documents captured
-    MatchData.find({}).limit(CONST_MATCHES_LOADED).exec(function (err, results) {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log("pulled match info from db");
+            console.log("parsing data");
 
             var champ_names = [];
 
@@ -144,11 +157,8 @@ var total_picks = 0;
                 //     }
                 // }
             }
-
-            console.log(counter_data);
-        }
-    })
-}());
+            console.log("data has been parsed, view ready to load");
+};
 
 //functions to export to our server
 module.exports = (function () {

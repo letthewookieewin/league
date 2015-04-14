@@ -111,8 +111,10 @@
     <body id='viz'>
         <div class="container" ng-controller='LeagueController'>
             <div class="row">
-                <div class="col-md-8 col-md-offset-2">
+                <div class="col-md-10 col-md-offset-1">
                     <h1 class="display">Welcome to our Riot API Challenge Entry</h1>
+                </div>
+                <div class="chord">
                 </div>
                 <table class='table'>
                     <!-- <tr>
@@ -125,11 +127,11 @@
                         <td ng-bind='pick.picks'></td>
                         <td ng-bind='pick.picks / total_picks * 100'></td>
                     </tr> -->
-                    <tr>
+                  <!--   <tr>
                         <th>Champion Name</th>
                         <th>Times picked</th>
                         <th>As percentage of overall picks</th>
-                    </tr>
+                    </tr> -->
                     <!-- <tr ng-repeat='counter in counter_data | filter:filter_name | orderBy:"-wins_against"'>
                         <td ng-bind='counter.name'></td>
                         <td ng-bind='counter.wins_against'></td>
